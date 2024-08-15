@@ -17,7 +17,6 @@ func getFieldValue(obj interface{}, fieldName string) interface{} {
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
-
 	field := val.FieldByName(fieldName)
 	if !field.IsValid() {
 		return nil
@@ -26,11 +25,44 @@ func getFieldValue(obj interface{}, fieldName string) interface{} {
 	return field.Interface()
 }
 
+func structHasField(s interface{}, fieldName string) bool {
+	val := reflect.ValueOf(s)
+	if val.Kind() == reflect.Ptr && !val.IsNil() {
+		val = val.Elem()
+	} else {
+		return false
+	}
+
+	_, found := val.Type().FieldByName(fieldName)
+	return found
+}
+
+func setFieldValue(obj interface{}, fieldName string, value interface{}) {
+	val := reflect.ValueOf(obj)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	field := val.FieldByName(fieldName)
+	if !field.IsValid() {
+		fmt.Printf("Field %s not found in struct\n", fieldName)
+		return
+	}
+
+	if field.CanSet() {
+		field.Set(reflect.ValueOf(value))
+	} else {
+		fmt.Printf("Cannot set value for field %s\n", fieldName)
+	}
+}
 // GetValue 对于KEY是以@开头的那么就要获取对应的值
-func GetValue(key string, user model.User, midData map[string]interface{}) string {
-	res := getFieldValue(&user, key)
-	if res != nil {
-		return fmt.Sprint(res)
+func GetValue(key string, user *model.User, midData map[string]interface{}) string {
+	var res interface{}
+	if user != nil {
+		res = getFieldValue(user, key)
+		if res != nil {
+			return fmt.Sprint(res)
+		}
 	}
 
 	res = ReadNestedData(midData, key)
@@ -64,7 +96,25 @@ func JudgeRespSuccess(resp map[string]interface{}, condition model.SuccessCondit
 	}
 	return false
 }
-func getHttp(authConfig model.AuthConfig, user model.User, midData map[string]interface{}) (error, string) {
+func RespMapResult(resp map[string]interface{}, successDataMap [][2]string, user *model.User) error {
+	for _, dataMap := range successDataMap {
+		mapKey, userKey := dataMap[0], dataMap[1]
+		if !structHasField(user, userKey){
+			initEnv.Logger.Error("mapdata user key is not exist")
+			return fmt.Errorf("mapdata user key is not exist")
+		}
+		if strings.HasPrefix(mapKey, "@") {
+			value := GetValue(mapKey[1:], nil, resp)
+			if value == "" {
+				initEnv.Logger.Error("get RespMapResult data failed")
+				return fmt.Errorf("get RespMapResult data failed")
+			}
+			setFieldValue(user, userKey, value)
+		}
+	}
+	return nil
+}
+func getHttp(authConfig model.AuthConfig, user *model.User, midData map[string]interface{}) (error, string) {
      reqUrl, err := url.Parse(authConfig.BaseUrl)
 	 if err != nil {
 		 initEnv.Logger.Error("get parse base url fail，err:", err)
@@ -76,8 +126,8 @@ func getHttp(authConfig model.AuthConfig, user model.User, midData map[string]in
 		 if strings.HasPrefix(value, "@") {
 			 value = GetValue(value[1:], user, midData)
 			 if value == "" {
-				 initEnv.Logger.Error("get data failed")
-				 return fmt.Errorf("get data failed"), ""
+				 initEnv.Logger.Error("get param get data failed")
+				 return fmt.Errorf("get param get data failed"), ""
 			 }
 		 }
 		 queryParams.Set(key, value)
@@ -95,8 +145,8 @@ func getHttp(authConfig model.AuthConfig, user model.User, midData map[string]in
 		if strings.HasPrefix(value, "@") {
 			value = GetValue(value[1:], user, midData)
 			if value == "" {
-				initEnv.Logger.Error("get data failed")
-				return fmt.Errorf("get data failed"), ""
+				initEnv.Logger.Error("get header get data failed")
+				return fmt.Errorf("get header get data failed"), ""
 			}
 			req.Header.Set(key, value)
 		}
@@ -127,11 +177,18 @@ func getHttp(authConfig model.AuthConfig, user model.User, midData map[string]in
 		return err, ""
 	}
 
+	// w判断结束，如果登录成功，需要将返回的值进行映射
+	err = RespMapResult(respStruct, authConfig.SuccessDataMap, user)
+	if err != nil {
+		initEnv.Logger.Error("resp map result fail")
+		return err, ""
+	}
+
 	bodyData := string(body)
 	return nil, bodyData
 }
 
-func postHttp(authConfig model.AuthConfig, user model.User, midData map[string]interface{}) (error, string) {
+func postHttp(authConfig model.AuthConfig, user *model.User, midData map[string]interface{}) (error, string) {
 	reqUrl, err := url.Parse(authConfig.BaseUrl)
 	if err != nil {
 		initEnv.Logger.Error("parse base url failed, err:", err)
@@ -144,8 +201,8 @@ func postHttp(authConfig model.AuthConfig, user model.User, midData map[string]i
 		if strings.HasPrefix(value, "@") {
 			value = GetValue(value[1:], user, midData)
 			if value == "" {
-				initEnv.Logger.Error("get data failed")
-				return fmt.Errorf("get data failed"), ""
+				initEnv.Logger.Error("post param get data failed")
+				return fmt.Errorf("post param get data failed"), ""
 			}
 		}
 		queryParams.Set(key, value)
@@ -165,8 +222,8 @@ func postHttp(authConfig model.AuthConfig, user model.User, midData map[string]i
 		if strings.HasPrefix(value, "@") {
 			value = GetValue(value[1:], user, midData)
 			if value == "" {
-				initEnv.Logger.Error("get data failed")
-				return fmt.Errorf("get data failed"), ""
+				initEnv.Logger.Error("post header get data failed")
+				return fmt.Errorf("post header get data failed"), ""
 			}
 		}
 		req.Header.Set(key, value)
@@ -198,12 +255,17 @@ func postHttp(authConfig model.AuthConfig, user model.User, midData map[string]i
 		initEnv.Logger.Error("judge response success failed")
 		return err, ""
 	}
-
+	// 判断结束，如果登录成功，需要将返回的值进行映射
+	err = RespMapResult(respStruct, authConfig.SuccessDataMap, user)
+	if err != nil {
+		initEnv.Logger.Error("post resp map result fail")
+		return err, ""
+	}
 	bodyData := string(body)
 	return nil, bodyData
 }
 
-func SendRequest(authConfigs []model.AuthConfig, user model.User) bool  {
+func SendRequest(authConfigs []model.AuthConfig, user *model.User) bool {
 	// 根据传来的用户信息和请求配置进行发送数据
 	var midData map[string]interface{}
 	for _, authConfig := range authConfigs {

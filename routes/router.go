@@ -27,6 +27,7 @@ func InitRouter() {
 	authApi := router.Group("api/v1")
 	{
 		authApi.POST("/login", controller.Login)
+		authApi.GET("/authConfig", controller.AuthConfig)
 	}
 
 

@@ -17,7 +17,6 @@ func Login(ctx *gin.Context) {
 		return
 	}
 	loginType := utils.ReadNestedData(loginData, "loginType")
-
 	switch loginType {
 	case "local":
 		data, err := service.LoginByLocal(loginData, ctx)
@@ -35,8 +34,20 @@ func Login(ctx *gin.Context) {
 			break
 		}
 		utils.OK(data, ctx)
+	case "oauth2":
+		data, err := service.LoginByOauth2(loginData, ctx)
+		if err !=nil {
+			initEnv.Logger.Error("login by local bind json failed,err:", err)
+			utils.Err(errmsg.ErrMsg["LOGIN_BY_HTTP_FAIL"], errmsg.LOGIN_BY_HTTP_FAIL, ctx)
+			break
+		}
+		utils.OK(data, ctx)
 	default:
 		initEnv.Logger.Error("login failed, unknow login type")
 		utils.Err(errmsg.ErrMsg["UNKNOW_LOGIN_TYPE"], errmsg.UNKNOW_LOGIN_TYPE, ctx)
 	}
+}
+
+func AuthConfig(ctx *gin.Context) {
+
 }

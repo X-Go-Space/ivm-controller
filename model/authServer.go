@@ -11,6 +11,7 @@ type AuthConfig struct {
 	BaseUrl string `json:"base_url"`
 	Headers [][2]string `json:"headers"`
 	Params [][2]string `json:"params"`
+	SuccessDataMap [][2]string `json:"success_data_map"`
 	Body    string    `json:"body"`
 	SuccessCondition SuccessCondition `json:"success_condition"`
 }
@@ -20,5 +21,6 @@ type AuthServer struct {
 	Name string `json:"name"`
 	UserDirectoryId string `json:"user_directory_id"`
 	AuthConfig []AuthConfig  `json:"auth_config" gorm:"-"`
+	AuthType string `json:"auth_type"`
 	AuthConfigJson string `json:"-"`
 }

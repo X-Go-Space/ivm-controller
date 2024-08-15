@@ -12,4 +12,5 @@ type User struct {
 	Mobile string `json:"mobile"`
 	Email string `json:"email"`
 	IsLocal int `json:"is_local"`
+	Code string `json:"code" gorm:"-"` // 用来进行oauth2登录用到的
 }

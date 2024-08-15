@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"ivm-controller/initEnv"
 	"ivm-controller/model"
 	"ivm-controller/utils"
@@ -147,7 +148,7 @@ func LoginByHttp (loginData map[string]interface{}, ctx *gin.Context) (interface
 		return nil,err
 	}
 
-	httpRes := utils.SendRequest(authConfig, user)
+	httpRes := utils.SendRequest(authConfig, &user)
 	if !httpRes {
 		initEnv.Logger.Error("http login failed")
 		return nil, fmt.Errorf("http login failed")
@@ -180,5 +181,71 @@ func LoginByHttp (loginData map[string]interface{}, ctx *gin.Context) (interface
 		"sid": user.ID,
 		"msg": errmsg.ErrMsg["LOGIN_BY_HTTP_SUCCESS"],
 	}, nil
+}
 
+func LoginByOauth2(loginData map[string]interface{}, ctx *gin.Context)(interface{}, error) {
+	// 根据id找到对应的authConfig
+	var oauth2AuthServer model.AuthServer
+	code := utils.ReadNestedData(loginData,"code").(string)
+	id := utils.ReadNestedData(loginData, "authId").(string)
+	fmt.Println(code, id)
+	result := initEnv.Db.Where("id = ?", id).First(&oauth2AuthServer)
+	if result.Error != nil {
+		initEnv.Logger.Error("get oauth2 auth server fail,err:", result.Error)
+		return nil, result.Error
+	}
+	if oauth2AuthServer.Id == "" {
+		initEnv.Logger.Error("the oauth2 auth server is empty")
+		return nil, fmt.Errorf("the user is not in the database")
+	}
+	var authConfig []model.AuthConfig
+	err := json.Unmarshal([]byte(oauth2AuthServer.AuthConfigJson), &authConfig)
+	if err != nil {
+		initEnv.Logger.Error("Unmarshal oauth2 auth server is failed,err:", err)
+		return nil, err
+	}
+
+	// 拿到code，然后根据code从第三方去换信息
+	var user model.User
+	user.Code = code
+	oauth2Res := utils.SendRequest(authConfig, &user)
+	if !oauth2Res {
+		initEnv.Logger.Error("oauth2 login failed")
+		return nil, fmt.Errorf("oauth2 login failed")
+	}
+	// user 已经被绑定了，找一下该用户是否存在在该数据库里面
+	result = initEnv.Db.Where("user_name = ?", user.UserName).First(&user)
+	if result.Error !=nil &&result.Error == gorm.ErrRecordNotFound {
+		initEnv.Logger.Error("oauth2 login failed, user is not in the database")
+		return nil, fmt.Errorf("oauth2 login failed, user is not in the database")
+	} else if result.Error !=nil {
+		initEnv.Logger.Error("oauth2 login find user failed")
+		return nil, fmt.Errorf("oauth2 login find user failed")
+	}
+	// 找到改用户了
+	sessionKey := utils.GenerateSessId(user.ID)
+	sessData, err := json.Marshal(gin.H{
+		"id": user.ID,
+		"userName": user.UserName,
+		"userDirectoryId": user.UserDirectoryId,
+		"mobile": user.Mobile,
+		"email": user.Email,
+		"status": user.Status,
+	})
+	if err != nil {
+		initEnv.Logger.Error("oauth2 marshal sess data failed,err:", err)
+		return nil, err
+	}
+
+	err = initEnv.Redis.Set(ctx, sessionKey, sessData, day).Err()
+
+	if err != nil {
+		initEnv.Logger.Error("oauth2 set redis err, err:", err)
+		return nil, err
+	}
+
+	return gin.H{
+		"sid": user.ID,
+		"msg": errmsg.ErrMsg["LOGIN_BY_OAUTH2_SUCCESS"],
+	}, nil
 }
