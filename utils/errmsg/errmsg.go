@@ -10,6 +10,7 @@ const (
 	CREATE_USER_DIRECTORY_FAILED = 100005
 	CREATE_AUTH_SERVER_FAIL = 100006
 	GET_AUTH_SERVER_FAIL = 100007
+	LOGIN_BY_HTTP_FAIL = 100008
 )
 
 var codeMsg = map[int]string{
@@ -29,6 +30,8 @@ var ErrMsg = map[string]string{
 	"CREATE_AUTH_SERVER_FAIL": "创建认证服务器失败",
 	"CREATE_AUTH_SERVER_SUCCESS": "创建认证服务器成功",
 	"GET_AUTH_SERVER_FAIL": "获取认证服务器失败",
+	"LOGIN_BY_HTTP_SUCCESS": "HTTP登录成功",
+	"LOGIN_BY_HTTP_FAIL": "HTTP登录失败",
 }
 
 func GetErrMsg(code int) string {

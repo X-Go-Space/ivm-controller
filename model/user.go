@@ -11,4 +11,5 @@ type User struct {
 	Path string `json:"path"`
 	Mobile string `json:"mobile"`
 	Email string `json:"email"`
+	IsLocal int `json:"is_local"`
 }
