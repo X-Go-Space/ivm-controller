@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-json"
 	"ivm-controller/initEnv"
 	"ivm-controller/model"
 	"ivm-controller/service"
@@ -27,6 +28,21 @@ func AuthServeCreate(ctx *gin.Context)  {
 }
 
 func GetAuthServerList(ctx *gin.Context)  {
+	var authServers []model.AuthServer
+	result := initEnv.Db.Find(&authServers)
+	if result.Error != nil {
+		initEnv.Logger.Error("GetAuthServerList get auth servers from mysql failed, err:", result.Error)
+		utils.Err(errmsg.ErrMsg["GET_AUTH_LIST_FAIL"], errmsg.GET_AUTH_LIST_FAIL, ctx)
+	}
+
+	for idx, _ := range authServers {
+		err:= json.Unmarshal([]byte(authServers[idx].AuthConfigJson), &authServers[idx].AuthConfig)
+		if err != nil {
+			initEnv.Logger.Error("GetAuthServerList unmarshal failed, err:", result.Error)
+			utils.Err(errmsg.ErrMsg["GET_AUTH_LIST_FAIL"], errmsg.GET_AUTH_LIST_FAIL, ctx)
+		}
+	}
+	utils.OK(authServers, ctx)
 
 }
 func GetAuthServerById(ctx *gin.Context)  {
