@@ -12,6 +12,7 @@ const (
 	GET_AUTH_SERVER_FAIL = 100007
 	LOGIN_BY_HTTP_FAIL = 100008
 	LOGIN_BY_OAUTH2_FAIL = 100009
+	GET_AUTH_CONFIG_FAIL = 1000010
 )
 
 var codeMsg = map[int]string{
@@ -35,6 +36,7 @@ var ErrMsg = map[string]string{
 	"LOGIN_BY_HTTP_FAIL": "HTTP登录失败",
 	"LOGIN_BY_OAUTH2_SUCCESS": "HTTP登录成功",
 	"LOGIN_BY_OAUTH2_FAIL": "HTTP登录失败",
+	"GET_AUTH_CONFIG_FAIL": "获取认证服务器配置失败",
 }
 
 func GetErrMsg(code int) string {

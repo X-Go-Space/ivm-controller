@@ -22,5 +22,6 @@ type AuthServer struct {
 	UserDirectoryId string `json:"user_directory_id"`
 	AuthConfig []AuthConfig  `json:"auth_config" gorm:"-"`
 	AuthType string `json:"auth_type"`
+	GetCode string `json:"get_code"`
 	AuthConfigJson string `json:"-"`
 }
