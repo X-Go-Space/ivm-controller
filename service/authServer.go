@@ -26,8 +26,13 @@ func CreatAuthServer(authServer model.AuthServer) error{
 	if err != nil {
 		return err
 	}
+	extData, err := json.Marshal(authServer.Ext)
+	if err != nil {
+		return err
+	}
 
 	authServer.AuthConfigJson = string(jsonData)
+	authServer.ExtJson = string(extData)
 	result:= initEnv.Db.Create(&authServer)
 	if result.Error != nil {
 		initEnv.Logger.Error("create authServer, err:", result.Error)

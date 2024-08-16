@@ -24,4 +24,6 @@ type AuthServer struct {
 	AuthType string `json:"auth_type"`
 	GetCode string `json:"get_code"`
 	AuthConfigJson string `json:"-"`
+	ExtJson string `json:"-"`
+	Ext map[string]interface{} `json:"ext" gorm:"-"`
 }
