@@ -29,6 +29,10 @@ func InitRouter() {
 	{
 		authApi.POST("/login", controller.Login)
 		authApi.GET("/authConfig", controller.AuthConfig)
+		authApi.GET("/generateQrCode", controller.GenerateQrCode)
+		authApi.GET("/getQrcodeStatus", controller.GetQrcodeStatus)
+		authApi.POST("/mobileQrcodeLogin", controller.MobileQrcodeLogin)
+		authApi.POST("/mobileQrcodeConfirm", controller.MobileQrcodeConfirm)
 	}
 
 

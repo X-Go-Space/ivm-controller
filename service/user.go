@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"ivm-controller/initEnv"
@@ -247,5 +248,41 @@ func LoginByOauth2(loginData map[string]interface{}, ctx *gin.Context)(interface
 	return gin.H{
 		"sid": user.ID,
 		"msg": errmsg.ErrMsg["LOGIN_BY_OAUTH2_SUCCESS"],
+	}, nil
+}
+
+func LoginByQrcode(data map[string]interface{},ctx *gin.Context) (interface{}, error) {
+	QRcodeId := utils.ReadNestedData(data, "qrcodeId").(string)
+
+	val, err := initEnv.Redis.Get(ctx, "SESS#ID#"+QRcodeId).Result()
+	if err == redis.Nil {
+		initEnv.Logger.Warn("LoginByQrcode qrcode is expired")
+		return gin.H{
+			"status":utils.QRcodeExpired,
+		}, err
+	} else if err != nil {
+		return nil,err
+	}
+
+	userInfo, err := initEnv.Redis.Get(ctx, "USER#SESS#"+val).Result()
+	if err == redis.Nil {
+		initEnv.Logger.Warn("LoginByQrcode qrcode get sid fail")
+		return gin.H{
+			"status":utils.QRcodeExpired,
+		}, err
+	} else if err != nil {
+		return nil,err
+	}
+	// 找到改用户了
+	sessionKey := utils.GenerateSessId(QRcodeId)
+	err = initEnv.Redis.Set(ctx, sessionKey, userInfo, day).Err()
+	if err != nil {
+		initEnv.Logger.Error("qrcode set redis err, err:", err)
+		return nil,err
+	}
+
+	return gin.H{
+		"sid": sessionKey,
+		"msg": errmsg.ErrMsg["LOGIN_BY_QRCODE_SUCCESS"],
 	}, nil
 }
