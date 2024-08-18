@@ -9,10 +9,13 @@ import (
 )
 
 func GetUsers(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{
-		"message": "GetUsers",
-	})
-	initEnv.Logger.Error("This is an error message.")
+	data, err := service.GetUsers(ctx)
+	if err != nil {
+		initEnv.Logger.Error("get users fail, err: ", err)
+		utils.Err(errmsg.ErrMsg["GET_USERS_FAIL"], errmsg.GET_USERS_FAIL, ctx)
+		return
+	}
+	utils.OK(data, ctx)
 }
 
 func AddUser(ctx *gin.Context) {

@@ -286,3 +286,15 @@ func LoginByQrcode(data map[string]interface{},ctx *gin.Context) (interface{}, e
 		"msg": errmsg.ErrMsg["LOGIN_BY_QRCODE_SUCCESS"],
 	}, nil
 }
+
+func GetUsers (ctx *gin.Context) (interface{}, error){
+	var users []model.User
+	result := initEnv.Db.Find(&users)
+	if result.Error != nil {
+		initEnv.Logger.Error("GetUsers get users from mysql failed, err:", result.Error)
+		return nil, result.Error
+	}
+	return gin.H{
+		"users":users,
+	}, nil
+}

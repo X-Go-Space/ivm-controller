@@ -19,6 +19,7 @@ const (
 	MOBILE_LOGIN_SCAN_FAIL = 1000014
 	MOBILE_LOGIN_CONFIRM_FAIL =1000015
 	LOGIN_BY_QRCODE_FAIL = 1000016
+	GET_USERS_FAIL = 1000017
 )
 
 var codeMsg = map[int]string{
@@ -52,6 +53,7 @@ var ErrMsg = map[string]string{
 	"MOBILE_LOGIN_CONFIRM_SUCCESS": "二维码确认成功",
 	"LOGIN_BY_QRCODE_SUCCESS": "二维码登录成功",
 	"LOGIN_BY_QRCODE_FAIL": "二维码登录失败",
+	"GET_USERS_FAIL": "获取用户失败",
 }
 
 func GetErrMsg(code int) string {
