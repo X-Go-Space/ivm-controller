@@ -41,7 +41,11 @@ func InitDb() {
 		os.Exit(1)
 	}
 	// 自动迁移AuthServer结构体和嵌套的AuthConfig结构体
-	Db.AutoMigrate(&model.AuthServer{})
+	err = Db.AutoMigrate(&model.AuthServer{}, &model.User{}, &model.Resource{})
+	if err != nil {
+		Logger.Error("migrate table failed, err:", err)
+		return
+	}
 
 	sqlDB, _ := Db.DB()
 	// SetMaxIdleCons 设置连接池中的最大闲置连接数。

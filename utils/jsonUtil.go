@@ -50,3 +50,18 @@ func ReadNestedData(data map[string]interface{}, keyPath string) interface{} {
 
 	return current
 }
+
+func SetNestedValue(data map[string]interface{}, key string, value interface{}) {
+	keys := strings.Split(key, ".")
+	current := data
+
+	for i := 0; i < len(keys)-1; i++ {
+		if _, ok := current[keys[i]]; !ok {
+			current[keys[i]] = make(map[string]interface{})
+		}
+		current = current[keys[i]].(map[string]interface{})
+	}
+
+	lastKey := keys[len(keys)-1]
+	current[lastKey] = value
+}

@@ -13,4 +13,5 @@ type User struct {
 	Email string `json:"email"`
 	IsLocal int `json:"is_local"`
 	Code string `json:"code" gorm:"-"` // 用来进行oauth2登录用到的
+	Resources []Resource `json:"resources" gorm:"many2many:resource_to_user;"`
 }

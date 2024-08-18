@@ -165,6 +165,7 @@ func LoginByHttp (loginData map[string]interface{}, ctx *gin.Context) (interface
 		"mobile": user.Mobile,
 		"email": user.Email,
 		"status": user.Status,
+		"resources": []string{},
 	})
 	if err != nil {
 		initEnv.Logger.Error("marshal sess data failed,err:", err)
