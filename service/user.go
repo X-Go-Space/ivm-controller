@@ -80,7 +80,16 @@ func LoginByLocal (loginData map[string]interface{}, ctx *gin.Context) (interfac
 		initEnv.Logger.Error("the password is not right")
 		return nil, err
 	}
-
+	var resources []model.Resource
+	err = initEnv.Db.Preload("UserList", "id = ?", user.ID).Find(&resources).Error
+	if err != nil {
+		initEnv.Logger.Error("login by local get Resources failed, err:",err)
+		return nil, err
+	}
+	resourcesID := make([]string,0)
+	for _,resource := range resources {
+		resourcesID = append(resourcesID,resource.Id)
+	}
 	// 将用户信息设置到redis里面
 	// 将sid下发下去
 	sessionKey := utils.GenerateSessId(user.ID)
@@ -91,6 +100,7 @@ func LoginByLocal (loginData map[string]interface{}, ctx *gin.Context) (interfac
 		"mobile": user.Mobile,
 		"email": user.Email,
 		"status": user.Status,
+		"resourceId": resourcesID,
 	})
 	if err != nil {
 		initEnv.Logger.Error("marshal sess data failed,err:", err)
@@ -155,6 +165,16 @@ func LoginByHttp (loginData map[string]interface{}, ctx *gin.Context) (interface
 		return nil, fmt.Errorf("http login failed")
 	}
 
+	var resources []model.Resource
+	err = initEnv.Db.Preload("UserList", "id = ?", user.ID).Find(&resources).Error
+	if err != nil {
+		initEnv.Logger.Error("login by http get Resources failed, err:",err)
+		return nil, err
+	}
+	resourcesID := make([]string,0)
+	for _,resource := range resources {
+		resourcesID = append(resourcesID,resource.Id)
+	}
 	// 将用户信息设置到redis里面
 	// 将sid下发下去
 	sessionKey := utils.GenerateSessId(user.ID)
@@ -165,7 +185,7 @@ func LoginByHttp (loginData map[string]interface{}, ctx *gin.Context) (interface
 		"mobile": user.Mobile,
 		"email": user.Email,
 		"status": user.Status,
-		"resources": []string{},
+		"resourceId": resourcesID,
 	})
 	if err != nil {
 		initEnv.Logger.Error("marshal sess data failed,err:", err)
@@ -224,7 +244,18 @@ func LoginByOauth2(loginData map[string]interface{}, ctx *gin.Context)(interface
 		initEnv.Logger.Error("oauth2 login find user failed")
 		return nil, fmt.Errorf("oauth2 login find user failed")
 	}
-	// 找到改用户了
+	var resources []model.Resource
+	err = initEnv.Db.Preload("UserList", "id = ?", user.ID).Find(&resources).Error
+	if err != nil {
+		initEnv.Logger.Error("login by http get Resources failed, err:",err)
+		return nil, err
+	}
+	resourcesID := make([]string,0)
+	for _,resource := range resources {
+		resourcesID = append(resourcesID,resource.Id)
+	}
+	// 将用户信息设置到redis里面
+	// 将sid下发下去
 	sessionKey := utils.GenerateSessId(user.ID)
 	sessData, err := json.Marshal(gin.H{
 		"id": user.ID,
@@ -233,6 +264,7 @@ func LoginByOauth2(loginData map[string]interface{}, ctx *gin.Context)(interface
 		"mobile": user.Mobile,
 		"email": user.Email,
 		"status": user.Status,
+		"resourceId": resourcesID,
 	})
 	if err != nil {
 		initEnv.Logger.Error("oauth2 marshal sess data failed,err:", err)

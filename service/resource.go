@@ -31,6 +31,18 @@ func CreateResource (resource model.Resource, ctx *gin.Context) (interface{}, er
 		initEnv.Logger.Error("add resource failed,err: ", err)
 		return nil,err
 	}
+	// 同时将资源的redirectUrl给放进session里面，便于获取
+	resourceRedisId := utils.GenerateResourceId(resource.Id)
+	resourceData , err := json.Marshal(resource)
+	if err!= nil {
+		initEnv.Logger.Error("set redis marshal resource failed,err: ", err)
+		return nil,err
+	}
+	err = initEnv.Redis.Set(ctx, resourceRedisId,resourceData, day).Err()
+	if err != nil {
+		initEnv.Logger.Error("set redis resource failed,err: ", err)
+		return nil,err
+	}
 	userList := resource.UserList
 	for _, user := range userList {
 		userSid := utils.GenerateSessId(user.ID)

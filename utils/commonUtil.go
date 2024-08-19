@@ -12,3 +12,7 @@ const (
 func RandID()string {
     return random.RandNumeralOrLetter(16)
 }
+
+func GenerateResourceId(ID string) string{
+    return "RESOURCE##"+ID
+}
