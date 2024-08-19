@@ -41,3 +41,5 @@ time="2024-08-19 12:10:05" level=error msg="GetResourceByResourceIds get resourc
 time="2024-08-19 12:11:36" level=error msg="GetResourceByResourceIds get resource fail,err:redis: nil"
 time="2024-08-19 12:13:49" level=error msg="GetResourceByResourceIds get resource fail,err:redis: nil"
 time="2024-08-19 12:14:03" level=error msg="GetResourceByResourceIds get resource fail,err:redis: nil"
+time="2024-08-19 18:53:55" level=error msg="数据库链接失败错误信息：Error 1045 (28000): Access denied for user 'ginblog'@'localhost' (using password: NO)"
+time="2024-08-19 18:54:06" level=error msg="migrate table failed, err:Error 1170 (42000): BLOB/TEXT column 'name' used in key specification without a key length"

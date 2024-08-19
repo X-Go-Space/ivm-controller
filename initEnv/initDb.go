@@ -41,7 +41,7 @@ func InitDb() {
 		os.Exit(1)
 	}
 	// 自动迁移AuthServer结构体和嵌套的AuthConfig结构体
-	err = Db.AutoMigrate(&model.AuthServer{}, &model.User{}, &model.Resource{})
+	err = Db.AutoMigrate(&model.AuthServer{}, &model.User{}, &model.Resource{}, &model.UserDirectory{})
 	if err != nil {
 		Logger.Error("migrate table failed, err:", err)
 		return
