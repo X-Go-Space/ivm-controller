@@ -24,6 +24,7 @@ func InitRouter() {
 		consoleApi.GET("/getAuthServerById", controller.GetAuthServerById)
 		consoleApi.GET("/getAuthServerList", controller.GetAuthServerList)
 		consoleApi.POST("/createResource", controller.CreateResource)
+		consoleApi.POST("/getResourceUrlByResourceIds", controller.GetResourceUrlByResourceIds)
 	}
 
 	authApi := router.Group("api/v1")

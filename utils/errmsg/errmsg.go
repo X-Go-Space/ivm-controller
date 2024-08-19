@@ -21,6 +21,7 @@ const (
 	LOGIN_BY_QRCODE_FAIL = 1000016
 	GET_USERS_FAIL = 1000017
 	CREATE_RESOURCE_FAIL = 1000018
+	GET_RESOURCE_FAIL = 1000019
 )
 
 var codeMsg = map[int]string{
@@ -57,6 +58,7 @@ var ErrMsg = map[string]string{
 	"GET_USERS_FAIL": "获取用户失败",
 	"CREATE_RESOURCE_FAIL": "创建资源失败",
 	"CREATE_RESOURCE_SUCCESS": "创建资源成功",
+	"GET_RESOURCE_FAIL":"获取资源失败",
 }
 
 func GetErrMsg(code int) string {

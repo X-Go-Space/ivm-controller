@@ -25,3 +25,26 @@ func CreateResource(ctx *gin.Context) {
 	}
 	utils.OK(data,ctx)
 }
+
+func GetResourceUrlByResourceIds(ctx *gin.Context) {
+	var resourceIdData map[string]interface{}
+	err := ctx.ShouldBind(&resourceIdData)
+	if err != nil {
+		initEnv.Logger.Error("GetResourceByResourceIds bind resource fail,err:",err)
+		utils.Err(errmsg.ErrMsg["GET_RESOURCE_FAIL"], errmsg.GET_RESOURCE_FAIL, ctx)
+		return
+	}
+	resourceIds := utils.ReadNestedData(resourceIdData, "resourceIds").([]interface{})
+	data:=make([]string, 0)
+	for _, resourceId := range resourceIds {
+		resourceId, _ := resourceId.(string)
+		resourceSessId := utils.GenerateResourceId(resourceId)
+		redirectUrl, err := initEnv.Redis.Get(ctx, resourceSessId).Result()
+		if err != nil {
+			initEnv.Logger.Error("GetResourceByResourceIds get resource fail,err:",err)
+			continue
+		}
+		data = append(data, redirectUrl)
+	}
+	utils.OK(data, ctx)
+}

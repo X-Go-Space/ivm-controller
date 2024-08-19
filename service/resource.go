@@ -43,6 +43,7 @@ func CreateResource (resource model.Resource, ctx *gin.Context) (interface{}, er
 		initEnv.Logger.Error("set redis resource failed,err: ", err)
 		return nil,err
 	}
+	fmt.Println(1222121)
 	userList := resource.UserList
 	for _, user := range userList {
 		userSid := utils.GenerateSessId(user.ID)
@@ -60,7 +61,7 @@ func CreateResource (resource model.Resource, ctx *gin.Context) (interface{}, er
 			initEnv.Logger.Error("create resource unmarshal  session data failed,err: ", err)
 			return nil, err
 		}
-		userResources := utils.ReadNestedData(sessionData, "resources").([]interface{})
+		userResources := utils.ReadNestedData(sessionData, "resourceId`").([]interface{})
 		userResources = append(userResources, resource.Id)
 		utils.SetNestedValue(sessionData, "resources", userResources)
 
